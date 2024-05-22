@@ -1,0 +1,81 @@
+version: "3.9"
+services:
+  zookeeper:
+    container_name: zookeeper
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ALLOW_ANONYMOUS_LOGIN: yes
+    ports:
+      - 2181:2181
+    networks:
+      - kafkanet
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - 9092:9092
+      - 9093:9093
+    hostname: kafka
+    environment:
+      # KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # KAFKA_ADVERTISED_PORT: 9092
+      KAFKA_BROKER_ID: 1
+      # KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: CLIENT://kafka:9092,EXTERNAL://kafka:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: CLIENT
+      ALLOW_PLAINTEXT_LISTENER: yes
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 2
+    networks:
+      - kafkanet
+
+
+  client-app:
+      image: client:0.0.1
+      build:
+        context: .
+        dockerfile: microservice-on-kafka-client\Dockerfile
+      ports:
+        - "8081:8081"
+      environment:
+        - SERVER_PORT=8081
+      networks:
+        - kafkanet
+
+  server-app:
+      image: server:0.0.1
+      build:
+        context: .
+        dockerfile: microservice-on-kafka-server\Dockerfile
+      ports:
+        - "8082:8082"
+      environment:
+        - SERVER_PORT=8082
+      networks:
+        - kafkanet
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui
+    depends_on:
+      - kafka
+    container_name: kafka-ui
+    ports:
+      - 8090:8080
+    restart: always
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
+      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
+    links:
+      - kafka
+      - zookeeper
+    networks:
+      - kafkanet
+
+networks:
+  kafkanet:
