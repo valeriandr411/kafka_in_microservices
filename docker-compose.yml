@@ -30,13 +30,15 @@ services:
       KAFKA_ADVERTISED_LISTENERS: CLIENT://kafka:9092,EXTERNAL://kafka:9093
       KAFKA_INTER_BROKER_LISTENER_NAME: CLIENT
       ALLOW_PLAINTEXT_LISTENER: yes
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 2
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     networks:
       - kafkanet
 
 
   client-app:
       image: client:0.0.1
+      depends_on:
+        - kafka
       build:
         context: .
         dockerfile: microservice-on-kafka-client\Dockerfile
@@ -49,6 +51,8 @@ services:
 
   server-app:
       image: server:0.0.1
+      depends_on:
+        - kafka
       build:
         context: .
         dockerfile: microservice-on-kafka-server\Dockerfile
