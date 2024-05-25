@@ -41,7 +41,7 @@ services:
         - kafka
       build:
         context: .
-        dockerfile: microservice-on-kafka-client\Dockerfile
+        dockerfile: microservice-on-kafka-client/Dockerfile
       ports:
         - "8081:8081"
       environment:
@@ -55,7 +55,7 @@ services:
         - kafka
       build:
         context: .
-        dockerfile: microservice-on-kafka-server\Dockerfile
+        dockerfile: microservice-on-kafka-server/Dockerfile
       ports:
         - "8082:8082"
       environment:
